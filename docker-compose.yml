@@ -18,3 +18,30 @@ services:
       retries: 5
     networks:
       - urlshortner-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: urlshortner-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-redispassword}", "--appendonly", "yes"]
+    ports:
+    - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redispassword}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - urlshortner-net
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  urlshortner-net:
+    driver: bridge
