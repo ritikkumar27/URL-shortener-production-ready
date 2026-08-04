@@ -4,9 +4,9 @@ services:
     container_name: urlshortner-postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_USER: ${DB_USER:-postgres}
-      - POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      - POSTGRES_DB: ${DB_NAME:-urlshortner}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-urlshortner}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
