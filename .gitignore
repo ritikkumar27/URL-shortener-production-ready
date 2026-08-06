@@ -199,3 +199,15 @@ vite.svg
 *.gz
 *.7z
 *.rar
+
+# prisma
+/generated/prisma
+.agents
+.claude
+.windsurf
+/prisma/migrations/
+/prisma/*.db
+/prisma/*.db-journal
+skills-lock.json
+
+
