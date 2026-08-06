@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  
 }
 
 enum Role {
@@ -45,6 +45,7 @@ model Link {
   @@index([expiresAt])
   @@map("links")
 }
+
 model Click {
   id          String   @id @default(uuid())
   linkId      String   @map("link_id")
@@ -71,11 +72,7 @@ model ApiKey {
   lastUsed DateTime? @map("last_used")
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User @relation(
-    fields: [userId],
-    references: [id],
-    onDelete: Cascade
-  )
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
 
   @@index([userId])
   @@map("api_keys")
