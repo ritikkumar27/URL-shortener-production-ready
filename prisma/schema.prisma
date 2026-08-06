@@ -31,5 +31,25 @@ model Link {
   id String @id @default(uuid())
   userId String? @map("user_id")
   shortCode String @unique @map("short_code")
-  
+  originalUrl String @map("original_url")
+  title String?
+  description String?
+  passwordHash String? @map("password_hash")
+  expiresAt DateTime? @map("expires_at")
+  isActive Boolean @default(true) @map("is_active")
+  clicksCount Int @default(0) @map("clicks_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User? @relation(
+    fields: [userId],
+    references: [id],
+    onDelete: SetNull)
+
+  clicks Click[]
+
+  @@index([shortCode, isActive])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("links")
 }
