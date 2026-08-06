@@ -4,52 +4,79 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
-enum ROLE {
+enum Role {
   USER
   ADMIN
 }
 
 model User {
-  id String @id @default(uuid())
-  email String @unique
-  passwordHash String @map("password_hash")
-  name String?
-  role Role @default(USER)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  links Link[]
-  apiKeys ApiKey[]
-
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String?
+  role         Role      @default(USER)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  links        Link[]
+  apiKeys      ApiKey[]
   @@map("users")
 }
 
 model Link {
-  id String @id @default(uuid())
-  userId String? @map("user_id")
-  shortCode String @unique @map("short_code")
-  originalUrl String @map("original_url")
-  title String?
-  description String?
-  passwordHash String? @map("password_hash")
-  expiresAt DateTime? @map("expires_at")
-  isActive Boolean @default(true) @map("is_active")
-  clicksCount Int @default(0) @map("clicks_count")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  user User? @relation(
-    fields: [userId],
-    references: [id],
-    onDelete: SetNull)
-
-  clicks Click[]
-
+  id           String    @id @default(uuid())
+  userId       String?   @map("user_id")
+  shortCode    String    @unique @map("short_code")
+  originalUrl  String    @map("original_url")
+  title        String?
+  description  String?
+  passwordHash String?   @map("password_hash")
+  expiresAt    DateTime? @map("expires_at")
+  isActive     Boolean   @default(true) @map("is_active")
+  clicksCount  Int       @default(0) @map("clicks_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clicks       Click[]
   @@index([shortCode, isActive])
   @@index([userId])
   @@index([expiresAt])
   @@map("links")
+}
+model Click {
+  id          String   @id @default(uuid())
+  linkId      String   @map("link_id")
+  timestamp   DateTime @default(now())
+  ipHash      String   @map("ip_hash")
+  country     String?
+  city        String?
+  device      String?
+  browser     String?
+  os          String?
+  referrer    String?
+  link        Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  @@index([linkId, timestamp(sort: Desc)])
+  @@index([country])
+  @@map("clicks")
+}
+
+model ApiKey {
+  id String @id @default(uuid())
+  userId String @map("user_id")
+  keyHash String @unique @map("key_hash")
+  name String
+  rateLimit Int @default(1000) @map("rate_limit")
+  lastUsed DateTime? @map("last_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(
+    fields: [userId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@index([userId])
+  @@map("api_keys")
 }
