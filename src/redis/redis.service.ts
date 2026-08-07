@@ -57,4 +57,17 @@ implements OnModuleInit, OnModuleDestroy {
         return `link:code:${shortCode}`;
     }
 
+    async getCachedLink(shortCode: string): Promise<CachedLink | null>{
+
+        try{
+            const data = await this.client.get(this.formatLinkKey(shortCode));
+            if(!data) return null;
+            return JSON.parse(data) as CachedLink;
+        }catch (err) {
+            this.logger.warn(`Failed to read cache for '${shortCode}':`, err);
+            return null;
+        }
+
+    }
+
 }
