@@ -120,14 +120,6 @@ export class LinksService {
       passwordHash: link.passwordHash,
     });
 
-    // Increment click counter asynchronously (In Phase 5, this will be handled via Redis + BullMQ Queue)
-    // this.prisma.link
-    //   .update({
-    //     where: { id: link.id },
-    //     data: { clicksCount: { increment: 1 } },
-    //   })
-    //   .catch((err) => this.logger.error(`Failed to increment click count for ${link.id}:`, err));
-
     return {originalUrl: link.originalUrl, id: link.id};
   }
 
