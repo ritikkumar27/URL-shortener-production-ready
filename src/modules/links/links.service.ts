@@ -11,6 +11,8 @@ import { PrismaService } from '../../database/prisma.service';
 import { Base62 } from '../../common/utils/base62.util';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
+import { RedisService, CachedLink } from 'src/redis/redis.service';
+
 
 @Injectable()
 export class LinksService {
@@ -20,6 +22,7 @@ export class LinksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {
     this.baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost:3000');
   }
@@ -53,6 +56,16 @@ export class LinksService {
         userId: userId ?? null,
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
       },
+    });
+
+    // adding created entry into my redis cache
+    await this.redisService.setCachedLink(link.shortCode, {
+      id: link.id,
+      originalUrl: link.originalUrl,
+      isActive: link.isActive,
+      expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+      passwordHash: link.passwordHash,
+
     });
 
     return {
