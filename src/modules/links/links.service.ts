@@ -74,7 +74,27 @@ export class LinksService {
     };
   }
 
-  async resolveShortCode(shortCode: string) {
+  async resolveShortCode(shortCode: string): Promise<{originalUrl: string; id: string}> {
+
+    // Cache HIT
+    const cached = await this.redisService.getCachedLink(shortCode);
+    if(cached){
+      if(!cached.isActive){
+        throw new GoneException('This short URL has been deactivated');
+      }
+
+      if (cached.expiresAt && new Date(cached.expiresAt) < new Date()){
+        await this.redisService.invalidateCachedLink(shortCode);
+        throw new GoneException('This short URL has expired');
+      }
+
+      this.logger.debug(`Cache HIT for '${shortCode}'`);
+      return { originalUrl: cached.originalUrl, id: cached.id};
+    }
+
+    // Cache MISS
+    this.logger.debug(`Cache MISS for '${shortCode}', querying PostgreSQL`);
+
     const link = await this.prisma.link.findUnique({
       where: { shortCode },
     });
@@ -91,6 +111,15 @@ export class LinksService {
       throw new GoneException('This short URL has expired');
     }
 
+    // populate redis cache for subsequent requests
+    await this.redisService.setCachedLink(link.shortCode, {
+      id: link.id,
+      originalUrl: link.originalUrl,
+      isActive: link.isActive,
+      expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+      passwordHash: link.passwordHash,
+    });
+
     // Increment click counter asynchronously (In Phase 5, this will be handled via Redis + BullMQ Queue)
     this.prisma.link
       .update({
@@ -99,7 +128,7 @@ export class LinksService {
       })
       .catch((err) => this.logger.error(`Failed to increment click count for ${link.id}:`, err));
 
-    return link;
+    return {originalUrl: link.originalUrl, id: link.id};
   }
 
   async findOne(id: string, userId?: string) {
@@ -144,7 +173,7 @@ export class LinksService {
       throw new NotFoundException('Link not found');
     }
 
-    return this.prisma.link.update({
+    const updated = await this.prisma.link.update({
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
@@ -155,6 +184,10 @@ export class LinksService {
         }),
       },
     });
+
+    //invalidating redis cache 
+    await this.redisService.invalidateCachedLink(link.shortCode);
+    return updated;
   }
 
   async remove(id: string, userId?: string) {
