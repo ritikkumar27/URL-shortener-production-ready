@@ -7,6 +7,7 @@ import { PrismaModule } from './database/prisma.module';
 import { LinksModule } from './modules/links/links.module';
 import { RedisModule } from './redis/redis.module';
 import { BullModule } from '@nestjs/bullmq';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BullModule } from '@nestjs/bullmq';
     PrismaModule,
     LinksModule,
     RedisModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
