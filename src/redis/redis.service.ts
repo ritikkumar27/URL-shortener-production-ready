@@ -70,4 +70,23 @@ implements OnModuleInit, OnModuleDestroy {
 
     }
 
+    async setCachedLink(shortcode: string, link: CachedLink, ttlSeconds = this.DEFAULT_LINK_TTL): Promise<void> {
+
+        try {
+            const key = this.formatLinkKey(shortcode);
+            await this.client.set(key, JSON.stringify(link), 'EX', ttlSeconds);
+        } catch (err) {
+            this.logger.warn(`Failed to cache link '${shortcode}':`, err);
+        }
+    }
+
+    async invalidateCachedLink(shortCode: string): Promise<void> {
+        try {
+            await this.client.del(this.formatLinkKey(shortCode));
+            this.logger.debug(`Cache invalidated for shortCode: ${shortCode}`);
+        } catch (err) {
+            this.logger.warn(`Failed to invalidate cache for '${shortCode}':`, err);
+        }
+    }
+
 }
