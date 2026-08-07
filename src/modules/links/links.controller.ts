@@ -19,6 +19,8 @@ import { UpdateLinkDto } from './dto/update-link.dto';
 export class LinksController {
   constructor(private readonly linksService: LinksService) {}
 
+
+  //incoming json is extracted by @Body() | converted into createLinkDto | whose type is CreateLinkDto
   @Post()
   @ApiOperation({ summary: 'Create a shortened URL' })
   @ApiResponse({ status: 201, description: 'URL successfully shortened' })
