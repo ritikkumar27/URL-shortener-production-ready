@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
+  patchNestJsSwagger();
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
@@ -40,3 +41,7 @@ async function bootstrap() {
 
 }
 bootstrap();
+function patchNestJsSwagger() {
+  throw new Error('Function not implemented.');
+}
+

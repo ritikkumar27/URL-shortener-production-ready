@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 export const createLinkSchema = z.object({
   originalUrl: z
-    .string()
     .url('Please provide a valid URL (including http:// or https://)')
     .max(2048, 'URL must not exceed 2048 characters'),
   customAlias: z
@@ -16,8 +15,7 @@ export const createLinkSchema = z.object({
   description: z.string().max(1000).optional(),
   password: z.string().min(4, 'Password must be at least 4 characters').max(64).optional(),
   expiresAt: z
-    .string()
-    .datetime({ message: 'Invalid ISO date string' })
+    .iso.datetime({ message: 'Invalid ISO date string' })
     .refine((date) => new Date(date) > new Date(), {
       message: 'Expiration date must be in the future',
     })

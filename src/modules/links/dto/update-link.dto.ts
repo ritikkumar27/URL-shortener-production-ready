@@ -6,8 +6,7 @@ export const updateLinkSchema = z.object({
   description: z.string().max(1000).optional(),
   isActive: z.boolean().optional(),
   expiresAt: z
-    .string()
-    .datetime({ message: 'Invalid ISO date string' })
+    .iso.datetime({ message: 'Invalid ISO date string' })
     .refine((date) => new Date(date) > new Date(), {
       message: 'Expiration date must be in the future',
     })
