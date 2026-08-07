@@ -203,6 +203,10 @@ export class LinksService {
     }
 
     await this.prisma.link.delete({ where: { id } });
+
+    //invalidate redis cache
+    await this.redisService.invalidateCachedLink(link.shortCode);
+
     return { message: 'Link successfully deleted' };
   }
 
