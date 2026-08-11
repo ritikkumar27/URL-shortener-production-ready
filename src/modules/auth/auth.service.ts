@@ -7,9 +7,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto, RefreshTokenDto, RegisterDto } from './auth.dto';
+import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto';
 import * as argon2 from 'argon2';
-import { JwtPayload } from './strategies/jwt.strategy';
+import { JwtPayload } from './dto/strategies/jwt.strategy';
 
 
 

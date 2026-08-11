@@ -1,9 +1,9 @@
 import { Controller, Post, Get, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, RefreshTokenDto } from './../dto/auth.dto';
-import { Public } from '../../../common/decorators/public.decorator';
-import * as currentUserDecorator from '../../../common/decorators/current-user.decorator';
+import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
+import { Public } from '../../common/decorators/public.decorator';
+import * as currentUserDecorator from '../../common/decorators/current-user.decorator';
 
 
 
