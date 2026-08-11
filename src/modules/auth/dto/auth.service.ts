@@ -7,8 +7,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto, RegisterDto } from './auth.dto';
+import { LoginDto, RefreshTokenDto, RegisterDto } from './auth.dto';
 import * as argon2 from 'argon2';
+import { JwtPayload } from './strategies/jwt.strategy';
 
 
 
@@ -97,7 +98,53 @@ export class AuthService {
 
     }
 
-    
+    private async generateTokens(payload: JwtPayload){
+        const accessSecret = this.configService.get<string>('JWT_SECRET', 'default_secret');
+        const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET', 'default_refresh_secret');
+        const accessExpiry = this.configService.get<string>('JWT_EXPIRES_IN', '15m');
+        const refreshExpiry = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync(payload, {
+                secret: accessSecret,
+                expiresIn: accessExpiry as any,
+            }),
+            this.jwtService.signAsync(payload, {
+            secret: refreshSecret,
+            expiresIn: refreshExpiry as any,
+            }),
+        ]);
+        return {
+            accessToken,
+            refreshToken,
+            expiresIn: accessExpiry,
+        };
+
+    }
+
+
+    async refreshToken(dto: RefreshTokenDto){
+
+        try {
+            const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET', 'default_refresh_secret');
+            const decoded = this.jwtService.verify<JwtPayload>(dto.refreshToken, {
+                secret: refreshSecret,
+            });
+            const user = await this.prisma.user.findUnique({
+                where: { id: decoded.sub },
+            });
+            if (!user) {
+                throw new UnauthorizedException('User no longer exists');
+            }
+            return this.generateTokens({
+                sub: user.id,
+                email: user.email,
+                role: user.role,
+            });
+        } catch {
+            throw new UnauthorizedException('Invalid or expired refresh token');
+        }
+
+    }
 
 
 
