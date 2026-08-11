@@ -55,8 +55,22 @@ export class AuthService {
             },
         });
 
+        const tokens = await this.generateTokens({
+            sub: user.id,
+            email: user.email,
+            role: user.role,
+
+        })
+
+        return {user, ...tokens};
+
         
     }
+
+    
+
+
+    
 }
 
 
