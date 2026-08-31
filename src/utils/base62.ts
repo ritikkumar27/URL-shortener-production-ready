@@ -3,6 +3,19 @@ import { randomBytes } from 'crypto';
 const BASE62_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const ALPHABET_LENGTH = BASE62_ALPHABET.length;
 
+
+export function generateShortCode(length = 6): string {
+  const bytes = randomBytes(length);
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += BASE62_ALPHABET[bytes[i] % ALPHABET_LENGTH];
+  }
+  return result;
+}
+
+
+// not necessary to use encode base 62 in my project
+
 export function encodeBase62(num: number | bigint): string {
   let n = BigInt(num);
   if (n === 0n) return BASE62_ALPHABET[0];
@@ -16,11 +29,3 @@ export function encodeBase62(num: number | bigint): string {
   return result;
 }
 
-export function generateShortCode(length = 6): string {
-  const bytes = randomBytes(length);
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += BASE62_ALPHABET[bytes[i] % ALPHABET_LENGTH];
-  }
-  return result;
-}
