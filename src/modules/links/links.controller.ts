@@ -24,4 +24,19 @@ export class LinksController {
     create(@Body() dto: CreateLinkDto) {
         return this.linksservice.create(dto);
     }
+
+    @Get(':id')
+    findById(@Param('id') id: string) {
+        return this.linksservice.findById(id);
+    }
+
+    @Patch(':id')
+    update(@Param('id') id: string, @Body() dto: UpdateLinkDto){
+        return this.linksservice.update(id, dto);
+    }
+
+    @Delete(':id')
+    remove(@Param('id') id: string){
+        return this.linksservice.remove(id);
+    }
 }
