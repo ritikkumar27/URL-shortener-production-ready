@@ -1,7 +1,10 @@
 allowBuilds:
   '@prisma/engines': true
   '@scarf/scarf': true
+<<<<<<< HEAD
   argon2: true
   msgpackr-extract: true
+=======
+>>>>>>> fresh
   prisma: true
   unrs-resolver: true
