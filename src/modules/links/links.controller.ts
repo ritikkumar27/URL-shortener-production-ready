@@ -26,16 +26,20 @@ export class LinksController {
     }
 
     @Get(':id')
+    @ApiOperation({ summary: 'Get link details by ID' })
     findById(@Param('id') id: string) {
         return this.linksservice.findById(id);
     }
 
     @Patch(':id')
+    @ApiOperation({ summary: 'Update a link' })
     update(@Param('id') id: string, @Body() dto: UpdateLinkDto){
         return this.linksservice.update(id, dto);
     }
 
     @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete a link' })
     remove(@Param('id') id: string){
         return this.linksservice.remove(id);
     }
