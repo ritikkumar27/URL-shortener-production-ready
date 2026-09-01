@@ -7,6 +7,9 @@ import { validateEnv } from './config/env.schema';
 import { PrismaModule } from './database/prisma.module';
 
 
+import { LinksModule } from './modules/links/links.module';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -14,6 +17,7 @@ import { PrismaModule } from './database/prisma.module';
       validate: validateEnv,
     }),
     PrismaModule,
+    LinksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
