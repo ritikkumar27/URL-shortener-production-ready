@@ -2,126 +2,45 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
-  Param,
   Delete,
+  Body,
+  Param,
   HttpCode,
   HttpStatus,
-  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiPropertyOptional } from '@nestjs/swagger';
 import { LinksService } from './links.service';
-import { CreateLinkDto } from './dto/create-link.dto';
-import { UpdateLinkDto } from './dto/update-link.dto';
-import { CurrentUser, UserPayload } from '../../common/decorators/current-user.decorator';
-import { Public } from '../../common/decorators/public.decorator';
+import { CreateLinkDto, UpdateLinkDto } from './dto/links.dto';
 
 @ApiTags('Links')
-@ApiBearerAuth()
 @Controller('links')
 export class LinksController {
-  constructor(private readonly linksService: LinksService) {}
+    constructor (private readonly linksService: LinksService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a shortened link (associated with current user if logged in)' })
-  @ApiResponse({ status: 201, description: 'Short link successfully created' })
-  create(
-    @Body() createLinkDto: CreateLinkDto,
-    @CurrentUser('id') userId?: string,
-  ) {
-    return this.linksService.create(createLinkDto, userId);
-  }
+    @Post()
+    @ApiOperation({summary: 'Create a shortened link'})
+    @ApiResponse({status: 201, description: 'Short link successfully creted'})
+    create(@Body() dto: CreateLinkDto) {
+        return this.linksService.create(dto);
+    }
 
-  @Get()
-  @ApiOperation({ summary: 'Get current user links (User Dashboard)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  findUserLinks(
-    @CurrentUser('id') userId: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return this.linksService.findAll(userId);
-  }
+    @Get(':id')
+    @ApiOperation({ summary: 'Get link details by ID' })
+    findById(@Param('id') id: string) {
+        return this.linksService.findById(id);
+    }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get link details by ID' })
-  findOne(@Param('id') id: string, @CurrentUser('id') userId?: string) {
-    return this.linksService.findOne(id, userId);
-  }
+    @Patch(':id')
+    @ApiOperation({ summary: 'Update a link' })
+    update(@Param('id') id: string, @Body() dto: UpdateLinkDto){
+        return this.linksService.update(id, dto);
+    }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update link settings' })
-  update(
-    @Param('id') id: string,
-    @Body() updateLinkDto: UpdateLinkDto,
-    @CurrentUser('id') userId: string,
-  ) {
-    return this.linksService.update(id, updateLinkDto, userId);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a shortened URL' })
-  remove(@Param('id') id: string, @CurrentUser('id') userId: string) {
-    return this.linksService.remove(id, userId);
-  }
+    @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete a link' })
+    remove(@Param('id') id: string){
+        return this.linksService.remove(id);
+    }
 }
-
-
-// import {
-//   Controller,
-//   Get,
-//   Post,
-//   Body,
-//   Patch,
-//   Param,
-//   Delete,
-//   HttpCode,
-//   HttpStatus,
-// } from '@nestjs/common';
-// import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-// import { LinksService } from './links.service';
-// import { CreateLinkDto } from './dto/create-link.dto';
-// import { UpdateLinkDto } from './dto/update-link.dto';
-
-// @ApiTags('Links')
-// @Controller('links')
-// export class LinksController {
-//   constructor(private readonly linksService: LinksService) {}
-
-
-//   //incoming json is extracted by @Body() | converted into createLinkDto | whose type is CreateLinkDto
-//   @Post()
-//   @ApiOperation({ summary: 'Create a shortened URL' })
-//   @ApiResponse({ status: 201, description: 'URL successfully shortened' })
-//   create(@Body() createLinkDto: CreateLinkDto) {
-//     return this.linksService.create(createLinkDto);
-//   }
-
-//   @Get()
-//   @ApiOperation({ summary: 'Get all links' })
-//   findAll() {
-//     return this.linksService.findAll();
-//   }
-
-//   @Get(':id')
-//   @ApiOperation({ summary: 'Get link details by ID' })
-//   findOne(@Param('id') id: string) {
-//     return this.linksService.findOne(id);
-//   }
-
-//   @Patch(':id')
-//   @ApiOperation({ summary: 'Update link settings' })
-//   update(@Param('id') id: string, @Body() updateLinkDto: UpdateLinkDto) {
-//     return this.linksService.update(id, updateLinkDto);
-//   }
-
-//   @Delete(':id')
-//   @HttpCode(HttpStatus.OK)
-//   @ApiOperation({ summary: 'Delete a shortened URL' })
-//   remove(@Param('id') id: string) {
-//     return this.linksService.remove(id);
-//   }
-// }

@@ -9,11 +9,9 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-import { APP_GUARD } from '@nestjs/core';
-import { AuthModule } from './modules/auth/auth.module';
-import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-
-
+import { ConfigModule } from '@nestjs/config';
+import { validateEnv } from './config/env.schema';
+import { PrismaModule } from './database/prisma.module';
 
 
 @Module({
@@ -33,10 +31,6 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
       }),
     }),
     PrismaModule,
-    LinksModule,
-    RedisModule,
-    AnalyticsModule,
-    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
