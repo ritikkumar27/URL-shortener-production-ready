@@ -25,10 +25,16 @@ export class LinksController {
         return this.linksService.create(dto);
     }
 
+    @Get('/resolve/:code')
+    @ApiOperation({summary: 'Resolve shortcode and get related data object'})
+    resolveCode(@Param('code') code: string){
+        return this.linksService.resolveShortCode(code);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get link details by ID' })
     findById(@Param('id') id: string) {
-        return this.linksService.findById(id);
+        return this.linksService.findOne(id);
     }
 
     @Patch(':id')
@@ -38,7 +44,7 @@ export class LinksController {
     }
 
     @Delete(':id')
-    @HttpCode(HttpStatus.NO_CONTENT)
+    @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Delete a link' })
     remove(@Param('id') id: string){
         return this.linksService.remove(id);
