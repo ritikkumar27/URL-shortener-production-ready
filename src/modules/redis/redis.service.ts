@@ -76,7 +76,25 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
 
     async setCachedLink(shortCode: string, link: CachedLink, ttlSeconds = this.DEFAULT_LINK_TTL): Promise<void>{
-        
+        try {
+            const key = this.formatLinkKey(shortCode);
+            await this.client.set(key, JSON.stringify(link), 'EX', ttlSeconds);
+
+        }catch (err) {
+            this.logger.warn(`Failed to cache link '${shortCode}', err`);
+
+        }
+    }
+
+    async invalidateCachedLink(shortCode: string) {
+        try {
+            await this.client.del(this.formatLinkKey(shortCode));
+            this.logger.debug(`Cache invalidated for shortCode: ${shortCode}`);
+
+        }catch (err) {
+            this.logger.warn(`Failed to invalidate cache for '${shortCode}':`, err);
+
+        }
     }
 
 
