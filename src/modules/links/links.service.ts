@@ -3,7 +3,8 @@ import {
     NotFoundException,
     ConflictException,
     Logger,
-    InternalServerErrorException
+    InternalServerErrorException,
+    GoneException
 } from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
@@ -87,7 +88,38 @@ export class LinksService {
         return link;
     }
 
+    // async resolveShortCode(shortCode: string) {
+
+    // }
+
     async findByShortCode(shortCode: string){
+
+        const cached = await this.redisService.getCachedLink(shortCode);
+
+        //cache hit
+        if(cached){
+
+            this.logger.debug(`Cache hit for '${shortCode}'`);
+
+            if(!cached.isActive){
+                throw new GoneException('This short URL has been deactivated');
+            }
+
+            if(cached.expiresAt && new Date(cached.expiresAt) < new Date()){
+                await this.redisService.invalidateCachedLink(shortCode);
+                throw new GoneException('This short URL has expired');
+            }
+
+            this.logger.debug(`Cache HIT success for '${shortCode}'`);
+            return {originalUrl: cached.originalUrl, id: cached.id};
+        }
+
+        //cache miss
+        this.logger.debug(`Cache miss for '${shortCode}'`);
+        this.logger.debug(`Querying Database for shortCode`);
+
+
+
         const link = await this.prisma.link.findUnique({
             where: {shortCode: shortCode},
         });
@@ -96,7 +128,23 @@ export class LinksService {
             throw new NotFoundException(`Short Link '${shortCode}' not found`);
         }
 
-        return link;
+        if(!link.isActive){
+            throw new GoneException('This short URL has been deactivated');
+        }
+
+        if(link.expiresAt && link.expiresAt < new Date()){
+            throw new GoneException('This short URL has expired');
+        }
+
+        await this.redisService.setCachedLink(link.shortCode, {
+            id: link.id,
+            originalUrl: link.originalUrl,
+            isActive: link.isActive,
+            expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+            passwordHash: link.passwordHash,
+        });
+
+        return {originalUrl: link.originalUrl, id: link.id};
     }
 
     async update(id: string, dto: UpdateLinkDto){
