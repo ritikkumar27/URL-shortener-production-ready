@@ -8,6 +8,7 @@ import { PrismaModule } from './database/prisma.module';
 
 
 import { LinksModule } from './modules/links/links.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 
 @Module({
@@ -18,6 +19,7 @@ import { LinksModule } from './modules/links/links.module';
     }),
     PrismaModule,
     LinksModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
