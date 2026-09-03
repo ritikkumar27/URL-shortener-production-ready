@@ -54,5 +54,35 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         return this.client;
     }
 
+    // caching helpers
+
+    private formatLinkKey(shortCode: string): string {
+        return `link:code:${shortCode}`;
+    }
+
+    async getCachedLink(shortCode: string): Promise<CachedLink | null> {
+
+        try {
+            const data = await this.client.get(this.formatLinkKey(shortCode));
+            if (!data) return null; //cache miss
+            return JSON.parse(data) as CachedLink; //cache hit
+            
+        } catch (err) {
+            this.logger.warn(`Failed to read cache for '${shortCode}':`, err);
+            return null;
+        }
+
+    }
+
+
+    async setCachedLink(shortCode: string, link: CachedLink, ttlSeconds = this.DEFAULT_LINK_TTL): Promise<void>{
+        
+    }
+
+
+
+
+    
+
 
 }
