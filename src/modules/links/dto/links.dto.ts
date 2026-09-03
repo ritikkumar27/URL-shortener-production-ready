@@ -18,7 +18,7 @@ export const CreateLinkSchema = z.object({
 
   title: z.string().max(255).optional(),
   description: z.string().max(1000).optional(),
-  expiresAt: z.coerce.date().optional(),
+  expiresAt: z.iso.datetime().optional(),
   password: z.string().min(4).max(64).optional(),
 });
 
@@ -28,7 +28,7 @@ export const UpdateLinkSchema = z.object({
     description: z.string().max(1000).optional(),
     originalUrl: z.url().max(2048).optional(),
     isActive: z.boolean().optional(),
-    expiresAt: z.coerce.date().nullable().optional(),
+    expiresAt: z.iso.datetime().nullable().optional(),
 });
 
 export class CreateLinkDto extends createZodDto(CreateLinkSchema) {}
