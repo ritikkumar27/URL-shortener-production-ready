@@ -1,13 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { patchNestjsSwagger, ZodValidationPipe } from 'nestjs-zod';
+import { cleanupOpenApiDoc, ZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module'; 
-import { config } from 'process';
-
 
 async function bootstrap() {
-  patchNestjsSwagger();
 
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
@@ -28,7 +25,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, cleanupOpenApiDoc(document));
 
   await app.listen(port);
   console.log(`🚀 Application running on: http://localhost:${port}/${apiPrefix}`);
