@@ -159,6 +159,24 @@ export class LinksService {
     return updated;
   }
 
+  async findOne(id: string, userId?: string){
+    const link = await this.prisma.link.findFirst({
+        where: {
+            id,
+            ...(userId ? {userId} : {}),
+        },
+    });
+
+    if(!link){
+        throw new NotFoundException('Link not found');
+    }
+
+    return {
+        ...link,
+        shortUrl: `${link.shortCode}`,
+    };
+  }
+
   async findAll(userId?: string){
     const links = await this.prisma.link.findMany({
         where: userId ? {userId} : {},
@@ -172,30 +190,25 @@ export class LinksService {
 
   }
 
-  async remove(id: string) {
-    await this.findById(id);
-    return this.prisma.link.delete({
-      where: { id: id },
-    });
-  }
-
-  async findById(id: string) {
-    const link = await this.prisma.link.findUnique({
-      where: { id: id },
-      include: {
-        _count: {
-          select: { clicks: true },
+  async remove(id: string, userId?: string) {
+    const link = await this.prisma.link.findFirst({
+        where: {
+            id,
+            ...(userId ? {userId} : {}),
         },
-      },
     });
 
-    if (!link) {
-      throw new NotFoundException(`Link with ID ${id} not found`);
+    if(!link){
+        throw new NotFoundException('Link not found');
     }
 
-    return link;
-  }
+    await this.prisma.link.delete({where: {id}});
 
+    await this.redisService.invalidateCachedLink(link.shortCode);
+
+    return {message: 'Link successfully deleted'};
+    
+  }
 
 
   private async generateUniqueShortCode(maxRetries = 5): Promise<string> {

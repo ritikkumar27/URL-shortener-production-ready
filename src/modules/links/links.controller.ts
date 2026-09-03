@@ -28,7 +28,7 @@ export class LinksController {
     @Get(':id')
     @ApiOperation({ summary: 'Get link details by ID' })
     findById(@Param('id') id: string) {
-        return this.linksService.findById(id);
+        return this.linksService.findOne(id);
     }
 
     @Patch(':id')
