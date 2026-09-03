@@ -12,12 +12,16 @@ import { UpdateLinkDto } from './dto/links.dto';
 import { generateShortCode } from '../../utils/base62.util';
 import { validateTargetUrl } from '../../utils/url-validator';
 import * as crypto from 'crypto';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class LinksService {
     private readonly logger = new Logger(LinksService.name);
 
-    constructor(private readonly prisma: PrismaService){}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly redisService: RedisService
+    ){}
 
     async create(dto: CreateLinkDto, userId?: string ) {
         const validatedUrl = validateTargetUrl(dto.originalUrl);
@@ -54,6 +58,14 @@ export class LinksService {
                 passwordHash: passwordHash
             },
         });
+
+        await this.redisService.setCachedLink(link.shortCode, {
+            id: link.id,
+            originalUrl: link.originalUrl,
+            isActive: link.isActive,
+            expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+            passwordHash: link.passwordHash
+        } );
 
         return link;
     }
