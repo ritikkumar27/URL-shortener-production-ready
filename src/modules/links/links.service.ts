@@ -14,15 +14,20 @@ import { generateShortCode } from '../../utils/base62.util';
 import { validateTargetUrl } from '../../utils/url-validator';
 import * as crypto from 'crypto';
 import { RedisService } from '../redis/redis.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LinksService {
   private readonly logger = new Logger(LinksService.name);
+  private readonly baseUrl : string;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
-  ) {}
+    private readonly configService: ConfigService
+  ) {
+    this.baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost:3000')
+  }
 
   // functuin i will use to create new entry in database and warm my cache with newly created DB entry
   async create(dto: CreateLinkDto, userId?: string) {
@@ -77,8 +82,9 @@ export class LinksService {
     return link;
   }
 
-  // function i will use for redirecting
-  async findByShortCode(shortCode: string) {
+  // function i will use for getting the original url from shortcode
+  async resolveShortCode(shortCode: string): Promise<{originalUrl: string, id: string}> {
+    
     const cached = await this.redisService.getCachedLink(shortCode);
 
     //cache hit
