@@ -12,9 +12,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
   const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1');
 
-  app.setGlobalPrefix(apiPrefix, {
-    exclude: [':code'],
-  });
+  // app.setGlobalPrefix(apiPrefix, {exclude: [':code']});
   app.useGlobalPipes(new ZodValidationPipe());
   app.enableCors();
 
@@ -30,7 +28,9 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, cleanupOpenApiDoc(document));
 
   await app.listen(port);
-  console.log(`🚀 Application running on: http://localhost:${port}/${apiPrefix}`);
+  // console.log(`🚀 Application running on: http://localhost:${port}/${apiPrefix}`);
+  console.log(`🚀 Application running on: http://localhost:${port}/`);
+
   console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
 
 }
