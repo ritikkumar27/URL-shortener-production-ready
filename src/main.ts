@@ -1,43 +1,37 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { cleanupOpenApiDoc, ZodValidationPipe } from 'nestjs-zod';
+import { AppModule } from './app.module'; 
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
 
+  const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
   const port = configService.get<number>('PORT', 3000);
   const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1');
 
-  //enabling cors - cross origin resource sharing
+  // app.setGlobalPrefix(apiPrefix, {exclude: [':code']});
+  app.useGlobalPipes(new ZodValidationPipe());
   app.enableCors();
 
-  app.useGlobalPipes(new ZodValidationPipe());
-
-  app.setGlobalPrefix(apiPrefix, {
-    exclude: [':code', 'health'],
-  });
-
-  //swagger
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('URL Shortener API')
-    .setDescription('Production greade URL Shortener and Analytics Platform')
-    .setVersion('1.0')
+    .setTitle('URL Shortener and Analytics API')
+    .setDescription('Production like URL Shortener, Analytics and Redirect Service')
+    .setVersion('1.0.0')
     .addBearerAuth()
+    .addApiKey({type: 'apiKey', name: 'x-api-key', in: 'header'}, 'api-key')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, cleanupOpenApiDoc(document));
 
   await app.listen(port);
+  // console.log(`🚀 Application running on: http://localhost:${port}/${apiPrefix}`);
+  console.log(`🚀 Application running on: http://localhost:${port}/`);
 
-  logger.log(`Application is running on: http://localhost:${port}`);
-  logger.log(`Swagger Docs available at: http://localhost:${port}/docs`);
+  console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
 
 }
 bootstrap();
-
