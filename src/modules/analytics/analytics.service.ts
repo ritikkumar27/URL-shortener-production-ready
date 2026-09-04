@@ -24,4 +24,22 @@ export class AnalyticsService {
             },
         },
     )};
+
+    async getLinkAnalytics(linkId: string) {
+        const link = await this.prismaService.link.findUnique({
+            where: {id: linkId},
+            select: {
+                id: true,
+                shortCode: true,
+                originalUrl: true,
+                title: true,
+                clicksCount: true,
+                createdAt: true,
+            }
+        });
+
+        if(!link){
+            throw new NotFoundException('Link not found');
+        }
+    }
 }
