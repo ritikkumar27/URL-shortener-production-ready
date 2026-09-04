@@ -41,5 +41,23 @@ export class AnalyticsService {
         if(!link){
             throw new NotFoundException('Link not found');
         }
+
+        const [topCountries, topBrowsers, topDevices, topReferrers, uniqueVisitors] = await Promise.all([
+            this.prismaService.click.groupBy({
+                by: ['country'],
+                where: {linkId},
+                _count: {id: true},
+                orderBy: {_count: {id: 'desc'}},
+                take: 5,
+            }),
+
+            this.prismaService.click.groupBy({
+                by: ['browser'],
+                where: {linkId},
+                _count: {id: true},
+                orderBy: {_count: {id: 'desc'}},
+                take: 5
+,            }),
+        ])
     }
 }
