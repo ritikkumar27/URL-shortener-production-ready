@@ -58,6 +58,22 @@ export class AnalyticsService {
                 orderBy: {_count: {id: 'desc'}},
                 take: 5
 ,            }),
-        ])
+
+            this.prismaService.click.groupBy({
+                by: ['referrer'],
+                where: {linkId},
+                _count: {id: true},
+                orderBy: {_count: {id: 'desc'}},
+                take: 5,
+
+            }),
+
+            // Unique Visitors (Count distinct ipHash)
+      this.prisma.click.findMany({
+        where: { linkId },
+        distinct: ['ipHash'],
+        select: { ipHash: true },
+      }),
+        ]);
     }
 }
