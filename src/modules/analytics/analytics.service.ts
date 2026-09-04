@@ -68,12 +68,11 @@ export class AnalyticsService {
 
             }),
 
-            // Unique Visitors (Count distinct ipHash)
-      this.prisma.click.findMany({
-        where: { linkId },
-        distinct: ['ipHash'],
-        select: { ipHash: true },
-      }),
+            this.prismaService.click.findMany({
+                where: {linkId},
+                distinct: ['ipHash'],
+                select: {ipHash: true},
+            }),
         ]);
     }
 }
