@@ -60,6 +60,14 @@ export class AnalyticsService {
 ,            }),
 
             this.prismaService.click.groupBy({
+                by: ['device'],
+                where: {linkId},
+                _count: {id: true},
+                orderBy: {_count: {id: 'desc'}},
+                take: 5,
+            }),
+
+            this.prismaService.click.groupBy({
                 by: ['referrer'],
                 where: {linkId},
                 _count: {id: true},
@@ -74,5 +82,70 @@ export class AnalyticsService {
                 select: {ipHash: true},
             }),
         ]);
+
+        return {
+            link,
+            summary: {
+                totalClicks: link.clicksCount,
+                uniqueVisitors: uniqueVisitors.length,
+            },
+            topCountries: topCountries.map((c) => ({
+                country: c.country, clicks: c._count.id
+            })),
+            topBrowsers: topBrowsers.map((b) => ({
+                browser: b.browser, clicks: b._count.id,
+            })),
+            topDevices: topDevices.map((d) => ({
+                device: d.device, clicks: d._count.id,
+            })),
+            topReferrers: topReferrers.map((r) => ({
+                referrer: r.referrer, clicks: r._count.id
+            })),
+        };
     }
+
+    // getting hourly/daily clicks counts for graph charting
+
+
+    async getTimeSeriesAnalytics(linkId: string, days = 7){
+
+        const sinceDate = new Date();
+        sinceDate.setDate(sinceDate.getDate() - days);
+
+        const clicks = await this.prismaService.click.findMany({
+            where: {
+                linkId,
+                timestamp: {gte: sinceDate},
+            },
+
+            select: {timestamp: true},
+            orderBy: {timestamp: 'asc'},
+        });
+
+
+        const dailyMap: Record<string, number> = {};
+        for (let i = 0; i< days; i++){
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            dailyMap[key] = 0;
+        }
+
+        clicks.forEach((c) => {
+            const day = c.timestamp.toISOString().split('T')[0];
+            if(dailyMap[day] !== undefined) {
+                dailyMap[day]++;
+            }
+        });
+
+        return Object.entries(dailyMap)
+            .map(([date, clicks]) => ({date, clicks}))
+            .sort((a,b) => a.date.localeCompare(b.date));
+
+
+
+    }
+
+
+
 }
