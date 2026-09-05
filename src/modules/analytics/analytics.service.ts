@@ -102,8 +102,37 @@ export class AnalyticsService {
                 referrer: r.referrer, clicks: r._count.id
             })),
         };
+    }
+
+    // getting hourly/daily clicks counts for graph charting
+
+
+    async getTimeSeriesAnalytics(linkId: string, days = 7){
+
+        const sinceDate = new Date();
+        sinceDate.setDate(sinceDate.getDate() - days);
+
+        const clicks = await this.prismaService.click.findMany({
+            where: {
+                linkId,
+                timestamp: {gte: sinceDate},
+            },
+
+            select: {timestamp: true},
+            orderBy: {timestamp: 'asc'},
+        });
+
+
+        const dailyMap: Record<string, number> = {};
+        for (let i = 0; i< days; i++){
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            dailyMap[key] = 0;
+        }
 
         
+
     }
 
 
