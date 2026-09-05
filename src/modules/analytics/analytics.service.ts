@@ -60,6 +60,14 @@ export class AnalyticsService {
 ,            }),
 
             this.prismaService.click.groupBy({
+                by: ['device'],
+                where: {linkId},
+                _count: {id: true},
+                orderBy: {_count: {id: 'desc'}},
+                take: 5,
+            }),
+
+            this.prismaService.click.groupBy({
                 by: ['referrer'],
                 where: {linkId},
                 _count: {id: true},
@@ -74,5 +82,30 @@ export class AnalyticsService {
                 select: {ipHash: true},
             }),
         ]);
+
+        return {
+            link,
+            summary: {
+                totalClicks: link.clicksCount,
+                uniqueVisitors: uniqueVisitors.length,
+            },
+            topCountries: topCountries.map((c) => ({
+                country: c.country, clicks: c._count.id
+            })),
+            topBrowsers: topBrowsers.map((b) => ({
+                browser: b.browser, clicks: b._count.id,
+            })),
+            topDevices: topDevices.map((d) => ({
+                device: d.device, clicks: d._count.id,
+            })),
+            topReferrers: topReferrers.map((r) => ({
+                referrer: r.referrer, clicks: r._count.id
+            })),
+        };
+
+        
     }
+
+
+
 }
