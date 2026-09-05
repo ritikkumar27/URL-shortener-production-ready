@@ -131,7 +131,18 @@ export class AnalyticsService {
             dailyMap[key] = 0;
         }
 
-        
+        clicks.forEach((c) => {
+            const day = c.timestamp.toISOString().split('T')[0];
+            if(dailyMap[day] !== undefined) {
+                dailyMap[day]++;
+            }
+        });
+
+        return Object.entries(dailyMap)
+            .map(([date, clicks]) => ({date, clicks}))
+            .sort((a,b) => a.date.localeCompare(b.date));
+
+
 
     }
 
