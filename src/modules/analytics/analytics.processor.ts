@@ -22,6 +22,10 @@ export class AnalyticsProcessor extends WorkerHost {
         this.ipSalt = this.configService.get<string>('IP_HASH_SALT', 'default_salt');
     }
 
+    onModuleInit() {
+        this.logger.log('Worker initialized');
+    }
+
     async process(job: Job<ClickEventPayload>): Promise<void> {
         if(job.name !== RECORD_CLICK_JOB) return;
 
