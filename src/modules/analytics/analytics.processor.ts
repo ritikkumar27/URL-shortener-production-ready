@@ -19,7 +19,7 @@ export class AnalyticsProcessor extends WorkerHost {
         private readonly configService: ConfigService,
     ) {
         super();
-        this.ipSalt = this.configService.get<string>('IP_HASH_SALT)', 'default_salt');
+        this.ipSalt = this.configService.get<string>('IP_HASH_SALT', 'default_salt');
     }
 
     async process(job: Job<ClickEventPayload>): Promise<void> {
@@ -42,7 +42,7 @@ export class AnalyticsProcessor extends WorkerHost {
             //geoip
             const geo = geoip.lookup(ip);
             const country = geo?.country || 'Unknown';
-            const city = geo?.city || 'Unkniwn';
+            const city = geo?.city || 'Unknown';
 
             let cleanedReferrer: string | null = null;
             if(referrer) {
