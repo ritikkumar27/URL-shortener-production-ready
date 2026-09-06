@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../database/prisma.service';
@@ -7,10 +7,16 @@ import { ANALYTICS_QUEUE, RECORD_CLICK_JOB, ClickEventPayload } from './analytic
 
 @Injectable()
 export class AnalyticsService {
+
+    private readonly logger = new Logger('BullModule');
     constructor(
         @InjectQueue(ANALYTICS_QUEUE) private readonly analyticsQueue: Queue,
         private readonly prismaService : PrismaService,
     ){}
+
+    onModuleInit() {
+        this.logger.log(`Queue '${ANALYTICS_QUEUE}' initialized`);
+    }
 
     // clickevent pus
     async trackClick(payload: ClickEventPayload): Promise<void> {
