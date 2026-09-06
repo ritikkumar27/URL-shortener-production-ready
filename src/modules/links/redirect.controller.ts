@@ -32,8 +32,19 @@ export class RedirectController {
             req.socket.remoteAddress ||
             '127.0.0.1';
 
+        const userAgent = req.headers['user-agent'] || 'Unknown';
+        const referrer = req.headers['referer'] || req.headers['referrer'] as string || undefined;
 
 
+        this.analyticsService.trackClick({
+            linkId: link.id,
+            ip,
+            userAgent,
+            referrer,
+            timestamp: new Date().toISOString(),
+        }).catch(() => {});
+
+        
         return res.redirect(HttpStatus.FOUND, link.originalUrl);
     }
 
