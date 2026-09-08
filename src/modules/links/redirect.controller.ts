@@ -3,6 +3,8 @@ import { LinksService } from './links.service';
 import type {Response, Request} from 'express';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { Public } from '../../common/decorators/public.decorator';
+
 
 
 @ApiTags('Redirect')
@@ -14,6 +16,7 @@ export class RedirectController {
     
     ) {}
 
+    @Public()
     @Get(':code')
     @ApiOperation({summary: 'Redirect to original URL'})
     async redirect(
