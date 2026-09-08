@@ -12,6 +12,12 @@ import { RedisModule } from './modules/redis/redis.module';
 
 import { BullModule } from '@nestjs/bullmq';
 
+import { APP_GUARD } from '@nestjs/core';
+import { AuthModule } from './modules/auth/auth.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+
+
 
 @Module({
   imports: [
@@ -26,14 +32,21 @@ import { BullModule } from '@nestjs/bullmq';
           host: configService.get<string>('REDIS_HOST', 'localhost'),
           port: configService.get<number>('REDIS_PORT', 6379),
           password: configService.get<string>('REDIS_PASSWORD'),
-        }
-      })
+        },
+      }),
     }),
     PrismaModule,
     LinksModule,
     RedisModule,
+    AuthModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    }
+  ],
 })
 export class AppModule {}
