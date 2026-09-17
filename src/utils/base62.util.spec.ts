@@ -13,7 +13,7 @@ describe('Base62 Utility', () => {
     // test 2 : checking if the custom code length works
 
     it('should generate a string of 8 characters when passed 8', () => {
-        const code = generateShortCode();
+        const code = generateShortCode(8);
         expect(code.length).toBe(8);
     });
 
