@@ -53,7 +53,65 @@ describe('LinksService', () => {
 
     it('should be defined', () => {
         expect(service).toBeDefined();
-    })
+    });
 
-})
+
+
+    describe('create()', () => {
+        it('should successfully create a new link with a custom code', async () => {
+            const createDto = {
+                originalUrl: 'https://google.com',
+                customCode: 'my-custom-code',
+            };
+
+
+            const expectedLink = {
+                id: '123',
+                originalUrl: 'https://google.com/', 
+                shortCode: 'my-custom-code',
+                isActive: true,
+                passwordHash: null,
+                expiresAt: null
+            };
+
+
+            prisma.link.findUnique.mockResolvedValue(null); 
+
+            prisma.link.create.mockResolvedValue(expectedLink);
+
+            const result = await service.create(createDto);
+
+            expect(result).toEqual(expectedLink);
+
+            expect(prisma.link.findUnique).toHaveBeenCalledWith({
+                where: { shortCode: 'my-custom-code' }
+            });
+
+            expect(redis.setCachedLink).toHaveBeenCalledWith('my-custom-code', {
+                id: '123',
+                originalUrl: 'https://google.com/',
+                isActive: true,
+                expiresAt: null,
+                passwordHash: null,
+            });
+
+        });
+
+        it('should throw ConflictException if custom code is already taken', async () => {
+            const createDto = {
+                originalUrl: 'https://google.com',
+                customCode: 'existing-code',
+            };
+            
+            prisma.link.findUnique.mockResolvedValue({ id: '456', shortCode: 'existing-code' });
+            await expect(service.create(createDto)).rejects.toThrow(ConflictException);
+            
+            expect(prisma.link.create).not.toHaveBeenCalled();
+            expect(redis.setCachedLink).not.toHaveBeenCalled();
+        });
+
+    });
+
+   
+});
 
