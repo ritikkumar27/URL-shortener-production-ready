@@ -17,6 +17,7 @@ const mockPrismaService = {
 
 const mockRedisService = {
     setCachedLink: jest.fn(),
+    getCachedLink: jest.fn(),
 }
 
 
@@ -111,6 +112,24 @@ describe('LinksService', () => {
         });
 
     });
+
+
+    describe('resolveShortCode()', () => {
+        it('should return from cache immediately on a Cache Hit', async () => {
+            redis.getCachedLink.mockResolvedValue({
+                id: '999',
+                originalUrl: 'https://github.com',
+                isActive: true,
+                expiresAt: null,
+            });
+
+
+            const result = await service.resolveShortCode('my-code');
+
+            expect(result.originalUrl).toBe('https://github.com');
+        });
+
+    })
 
    
 });
