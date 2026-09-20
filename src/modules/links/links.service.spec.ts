@@ -127,9 +127,39 @@ describe('LinksService', () => {
             const result = await service.resolveShortCode('my-code');
 
             expect(result.originalUrl).toBe('https://github.com');
+
+
+            expect(prisma.link.findUnique).not.toHaveBeenCalled();
         });
 
-    })
+
+        it('should query the database on a Cache Miss, and then save to cache', async () => {
+
+            redis.getCachedLink.mockResolvedValue(null);
+
+            prisma.link.findUnique.mockResolvedValue({
+                id: '888',
+                originalUrl: 'https://nestjs.com',
+                shortCode: 'nest-code',
+                isActive: true,
+                passwordHash: null,
+                expiresAt: null,
+            });
+
+            const result = await service.resolveShortCode('nest-code');
+
+            expect(result.originalUrl).toBe('https://nestjs.com');
+            
+
+            expect(prisma.link.findUnique).toHaveBeenCalledWith({
+                where: { shortCode: 'nest-code' }
+            });
+            
+
+            expect(redis.setCachedLink).toHaveBeenCalledWith('nest-code', expect.any(Object));
+        });
+
+    });
 
    
 });
