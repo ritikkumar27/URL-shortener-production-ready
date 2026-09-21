@@ -45,4 +45,17 @@ describe('LinksController', () => {
       expect(service.create).toHaveBeenCalledWith(createDto, mockUserId);
     });
   });
+
+
+
+  describe('resolveCode()', () => {
+    it('should call LinksService.resolveShortCode with the URL param code', async () => {
+      const code = 'abc';
+      const expectedResult = { originalUrl: 'https://example.com', id: '1' };
+      service.resolveShortCode.mockResolvedValue(expectedResult);
+      const result = await controller.resolveCode(code);
+      expect(result).toEqual(expectedResult);
+      expect(service.resolveShortCode).toHaveBeenCalledWith('abc');
+    });
+  });
 })
