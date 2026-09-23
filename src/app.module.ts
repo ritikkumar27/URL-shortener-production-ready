@@ -17,6 +17,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
+import {ThrottlerModule} from '@nestjs/throttler';
+
 
 
 @Module({
@@ -25,6 +27,11 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
       isGlobal: true,
       validate: validateEnv,
     }),
+
+    ThrottlerModule.forRoot([{
+      ttl: 60000, //miliseconds (60 seconds),
+      limit: 10,
+    }]),
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
