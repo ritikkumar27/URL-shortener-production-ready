@@ -18,6 +18,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 import {ThrottlerModule} from '@nestjs/throttler';
+import {ThrottlerGuard} from '@nestjs/throttler';
 
 
 
@@ -53,7 +54,12 @@ import {ThrottlerModule} from '@nestjs/throttler';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
-    }
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+
+    },
   ],
 })
 export class AppModule {}
