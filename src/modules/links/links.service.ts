@@ -4,7 +4,8 @@ import {
     ConflictException,
     Logger,
     InternalServerErrorException,
-    GoneException
+    GoneException,
+    UnauthorizedException
 } from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
@@ -87,7 +88,7 @@ export class LinksService {
   }
 
   // function i will use for getting the original url from shortcode
-  async resolveShortCode(shortCode: string): Promise<{originalUrl: string, id: string}> {
+  async resolveShortCode(shortCode: string, password?: string): Promise<{originalUrl: string, id: string}> {
     
     const cached = await this.redisService.getCachedLink(shortCode);
 
@@ -102,6 +103,22 @@ export class LinksService {
       if (cached.expiresAt && new Date(cached.expiresAt) < new Date()) {
         await this.redisService.invalidateCachedLink(shortCode);
         throw new GoneException('This short URL has expired');
+      }
+
+      if(cached.isProtected) {
+        if(!password){
+          throw new UnauthorizedException('Password required');
+        }
+
+        const link = await this.prisma.link.findUnique({where: {shortCode}}  );
+        if(!link || !link.passwordHash) {
+          throw new InternalServerErrorException('Protected link missing password hash');
+        }
+
+        const isValid = await argon2.verify(link.passwordHash, password);
+        if(!isValid){
+          throw new UnauthorizedException('Invalid Password');
+        }
       }
 
       this.logger.debug(`Cache HIT success for '${shortCode}'`);
