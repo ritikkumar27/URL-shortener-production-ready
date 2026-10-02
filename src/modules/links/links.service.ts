@@ -13,6 +13,7 @@ import { UpdateLinkDto } from './dto/links.dto';
 import { generateShortCode } from '../../utils/base62.util';
 import { validateTargetUrl } from '../../utils/url-validator';
 import * as crypto from 'crypto';
+import * as argon2 from 'argon2';
 import { RedisService } from '../redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -53,10 +54,12 @@ export class LinksService {
 
     let passwordHash: string | null = null;
     if (dto.password) {
-      passwordHash = crypto
-        .createHash('sha256')
-        .update(dto.password)
-        .digest('hex');
+
+      passwordHash = await argon2.hash(dto.password);
+      // passwordHash = crypto
+      //   .createHash('sha256')
+      //   .update(dto.password)
+      //   .digest('hex');
     }
 
     const link = await this.prisma.link.create({
@@ -76,10 +79,11 @@ export class LinksService {
       originalUrl: link.originalUrl,
       isActive: link.isActive,
       expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
-      passwordHash: link.passwordHash,
+      isProtected: !!link.passwordHash,
     });
 
-    return link;
+    const { passwordHash: _, ...safeLink } = link;
+    return safeLink;
   }
 
   // function i will use for getting the original url from shortcode
@@ -129,7 +133,7 @@ export class LinksService {
       originalUrl: link.originalUrl,
       isActive: link.isActive,
       expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
-      passwordHash: link.passwordHash,
+      isProtected: !!link.passwordHash,
     });
 
     return { originalUrl: link.originalUrl, id: link.id };
@@ -177,9 +181,10 @@ export class LinksService {
         throw new NotFoundException('Link not found');
     }
 
+    const { passwordHash: _, ...safeLink } = link;
     return {
-        ...link,
-        shortUrl: `${link.shortCode}`,
+      ...safeLink,
+      shortUrl: `${link.shortCode}`,
     };
   }
 
@@ -189,10 +194,13 @@ export class LinksService {
         orderBy: {createdAt: 'desc'},
     });
 
-    return links.map((link) => ({
-        ...link,
-        shortUrl: `${link.shortCode}`,
-    }));
+    return links.map((link) => {
+       const { passwordHash: _, ...safeLink } = link;
+       return {
+          ...safeLink,
+           shortUrl: `${link.shortCode}`,
+        };
+    });
 
   }
 
