@@ -145,6 +145,17 @@ export class LinksService {
       throw new GoneException('This short URL has expired');
     }
 
+    if (link.passwordHash) {
+       if (!password) {
+         throw new UnauthorizedException('Password required');
+       }
+       const isValid = await argon2.verify(link.passwordHash, password);
+       if (!isValid) {
+         throw new UnauthorizedException('Invalid password');
+       }
+     }
+
+
     await this.redisService.setCachedLink(link.shortCode, {
       id: link.id,
       originalUrl: link.originalUrl,
