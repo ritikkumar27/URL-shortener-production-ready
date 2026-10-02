@@ -7,7 +7,7 @@ export interface CachedLink {
     originalUrl: string;
     isActive: boolean;
     expiresAt: string | null;
-    passwordHash: string | null;
+    isProtected: boolean;
 }
 
 @Injectable()
