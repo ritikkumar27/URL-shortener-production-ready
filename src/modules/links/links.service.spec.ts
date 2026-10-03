@@ -120,7 +120,7 @@ describe('LinksService', () => {
                 originalUrl: 'https://github.com',
                 isActive: true,
                 expiresAt: null,
-+               isProtected: false,
+               isProtected: false,
             });
 
 
