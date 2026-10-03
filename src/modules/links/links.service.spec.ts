@@ -64,9 +64,7 @@ describe('LinksService', () => {
                 originalUrl: 'https://google.com',
                 customCode: 'my-custom-code',
             };
-
-
-            const expectedLink = {
+            const dbLink = {
                 id: '123',
                 originalUrl: 'https://google.com/', 
                 shortCode: 'my-custom-code',
@@ -74,28 +72,28 @@ describe('LinksService', () => {
                 passwordHash: null,
                 expiresAt: null
             };
-
-
+            
+            const expectedLink = {
+                id: '123',
+                originalUrl: 'https://google.com/', 
+                shortCode: 'my-custom-code',
+                isActive: true,
+                expiresAt: null
+            };
             prisma.link.findUnique.mockResolvedValue(null); 
-
-            prisma.link.create.mockResolvedValue(expectedLink);
-
+            prisma.link.create.mockResolvedValue(dbLink);
             const result = await service.create(createDto);
-
             expect(result).toEqual(expectedLink);
-
             expect(prisma.link.findUnique).toHaveBeenCalledWith({
                 where: { shortCode: 'my-custom-code' }
             });
-
             expect(redis.setCachedLink).toHaveBeenCalledWith('my-custom-code', {
                 id: '123',
                 originalUrl: 'https://google.com/',
                 isActive: true,
                 expiresAt: null,
-                passwordHash: null,
+                isProtected: false,
             });
-
         });
 
         it('should throw ConflictException if custom code is already taken', async () => {
