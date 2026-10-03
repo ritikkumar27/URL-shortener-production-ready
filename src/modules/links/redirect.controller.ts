@@ -106,4 +106,37 @@ export class RedirectController {
     }
 
 
+    @Public()
+    @Post(':code')
+    @ApiOperation({summary: 'Verify password and redirect'})
+    async verifyAndRedirect(
+        @Param('code') code: string,
+        @Body('password') password: string | undefined,
+        @Res() res: Response,
+        @Req() req: Request,
+    ){
+        const link = await this.linksService.resolveShortCode(code, password);
+
+        const ip = (req.headers['cf-connecting-ip'] as string) || 
+            (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+            req.ip ||
+            req.socket.remoteAddress ||
+            '127.0.0.1';
+
+
+        const userAgent = req.headers['user-agent'] || 'Unknown';
+        const referrer = req.headers['referer'] || req.headers['referrer'] as string || undefined;
+
+        this.analyticsService.trackClick({
+            linkId: link.id,
+            ip,
+            userAgent,
+            referrer,
+            timestamp: new Date().toISOString(),
+        }).catch(() => {});
+
+        return res.redirect(HttpStatus.FOUND, link.originalUrl);
+    }
+
+
 }
