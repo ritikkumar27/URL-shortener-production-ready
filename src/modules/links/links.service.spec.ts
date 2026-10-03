@@ -114,11 +114,13 @@ describe('LinksService', () => {
 
     describe('resolveShortCode()', () => {
         it('should return from cache immediately on a Cache Hit', async () => {
+            it('should return from cache immediately on a Cache Hit', async () => {
             redis.getCachedLink.mockResolvedValue({
                 id: '999',
                 originalUrl: 'https://github.com',
                 isActive: true,
                 expiresAt: null,
++               isProtected: false,
             });
 
 
@@ -155,6 +157,30 @@ describe('LinksService', () => {
             
 
             expect(redis.setCachedLink).toHaveBeenCalledWith('nest-code', expect.any(Object));
+        });
+
+                it('should throw UnauthorizedException if link is protected and no password provided (cache hit)', async () => {
+            redis.getCachedLink.mockResolvedValue({ 
+                id: '999', 
+                originalUrl: 'https://test.com', 
+                isActive: true, 
+                expiresAt: null, 
+                isProtected: true 
+            });
+            await expect(service.resolveShortCode('my-code')).rejects.toThrow('Password required');
+        });
+
+        it('should throw UnauthorizedException if link is protected and no password provided (cache miss)', async () => {
+            redis.getCachedLink.mockResolvedValue(null);
+            prisma.link.findUnique.mockResolvedValue({ 
+                id: '888', 
+                shortCode: 'test', 
+                originalUrl: 'https://test.com', 
+                isActive: true, 
+                passwordHash: 'hashed-password', 
+                expiresAt: null 
+            });
+            await expect(service.resolveShortCode('test')).rejects.toThrow('Password required');
         });
 
     });
