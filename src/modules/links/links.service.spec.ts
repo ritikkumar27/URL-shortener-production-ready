@@ -114,7 +114,6 @@ describe('LinksService', () => {
 
     describe('resolveShortCode()', () => {
         it('should return from cache immediately on a Cache Hit', async () => {
-            it('should return from cache immediately on a Cache Hit', async () => {
             redis.getCachedLink.mockResolvedValue({
                 id: '999',
                 originalUrl: 'https://github.com',
