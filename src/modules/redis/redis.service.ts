@@ -18,7 +18,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     //! means we are telling TS that this property will be initialised before it is used.
     //it will be initialised on lifecycle hook OnModuleInit
 
-    private readonly DEFAULT_LINK_TTL = 60*24*24;
+    private readonly DEFAULT_LINK_TTL = 60*60*24;
 
     constructor(private readonly configService: ConfigService) {}
 
