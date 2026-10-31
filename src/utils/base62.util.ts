@@ -26,3 +26,23 @@ export function encodeBase62(num: number | bigint): string {
   return result;
 }
 
+
+export const RESERVED_SLUGS = new Set([
+  'api',
+  'auth',
+  'links',
+  'analytics',
+  'qr',
+  'docs',
+  'swagger',
+  'health',
+  'metrics',
+  'admin',
+  'favicon.ico',
+  'robots.txt',
+]);
+
+export function isReservedSlug(slug: string): boolean {
+  return RESERVED_SLUGS.has(slug.toLowerCase().trim());
+}
+
