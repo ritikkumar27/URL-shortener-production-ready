@@ -5,13 +5,14 @@ import {
     Logger,
     InternalServerErrorException,
     GoneException,
-    UnauthorizedException
+    UnauthorizedException,
+    BadRequestException,
 } from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
 import { CreateLinkDto } from './dto/links.dto';
 import { UpdateLinkDto } from './dto/links.dto';
-import { generateShortCode } from '../../utils/base62.util';
+import { generateShortCode, isReservedSlug } from '../../utils/base62.util';
 import { validateTargetUrl } from '../../utils/url-validator';
 import * as crypto from 'crypto';
 import * as argon2 from 'argon2';
@@ -38,6 +39,11 @@ export class LinksService {
     let shortCode: string;
 
     if (dto.customCode) {
+
+      if(isReservedSlug(dto.customCode)){
+        throw new BadRequestException(`Custom alias '${dto.customCode}' is a reserved system keyword`);
+      }
+
       const existing = await this.prisma.link.findUnique({
         where: { shortCode: dto.customCode },
       });
@@ -256,6 +262,11 @@ export class LinksService {
   private async generateUniqueShortCode(maxRetries = 5): Promise<string> {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       const code = generateShortCode(6);
+
+      if(isReservedSlug(code)){
+        continue;
+      }
+      
       const existing = await this.prisma.link.findUnique({
         where: { shortCode: code },
         select: { id: true },
