@@ -9,6 +9,7 @@ import {
     BadRequestException,
 } from '@nestjs/common';
 
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateLinkDto } from './dto/links.dto';
 import { UpdateLinkDto } from './dto/links.dto';
@@ -36,61 +37,83 @@ export class LinksService {
   async create(dto: CreateLinkDto, userId?: string) {
     const validatedUrl = validateTargetUrl(dto.originalUrl);
 
-    let shortCode: string;
-
-    if (dto.customCode) {
-
-      if(isReservedSlug(dto.customCode)){
-        throw new BadRequestException(`Custom alias '${dto.customCode}' is a reserved system keyword`);
-      }
-
-      const existing = await this.prisma.link.findUnique({
-        where: { shortCode: dto.customCode },
-      });
-
-      if (existing) {
-        throw new ConflictException(
-          `Custom alias '${dto.customCode}' is already taken`,
-        );
-      }
-
-      shortCode = dto.customCode;
-    } else {
-      shortCode = await this.generateUniqueShortCode();
-    }
-
     let passwordHash: string | null = null;
     if (dto.password) {
-
       passwordHash = await argon2.hash(dto.password);
-      // passwordHash = crypto
-      //   .createHash('sha256')
-      //   .update(dto.password)
-      //   .digest('hex');
     }
 
-    const link = await this.prisma.link.create({
-      data: {
-        userId: userId ?? null,
-        shortCode,
-        originalUrl: validatedUrl,
-        title: dto.title ?? null,
-        description: dto.description ?? null,
-        expiresAt: dto.expiresAt ?? null,
-        passwordHash: passwordHash,
-      },
-    });
+    const maxRetries = dto.customCode ? 1 : 5;
 
-    await this.redisService.setCachedLink(link.shortCode, {
-      id: link.id,
-      originalUrl: link.originalUrl,
-      isActive: link.isActive,
-      expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
-      isProtected: !!link.passwordHash,
-    });
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      let shortCode: string;
 
-    const { passwordHash: _, ...safeLink } = link;
-    return safeLink;
+      if (dto.customCode) {
+        if (isReservedSlug(dto.customCode)) {
+          throw new BadRequestException(
+            `Custom alias '${dto.customCode}' is a reserved system keyword`,
+          );
+        }
+
+        const existing = await this.prisma.link.findUnique({
+          where: { shortCode: dto.customCode },
+        });
+
+        if (existing) {
+          throw new ConflictException(
+            `Custom alias '${dto.customCode}' is already taken`,
+          );
+        }
+
+        shortCode = dto.customCode;
+      } else {
+        shortCode = await this.generateUniqueShortCode();
+      }
+
+      try {
+        const link = await this.prisma.link.create({
+          data: {
+            userId: userId ?? null,
+            shortCode,
+            originalUrl: validatedUrl,
+            title: dto.title ?? null,
+            description: dto.description ?? null,
+            expiresAt: dto.expiresAt ?? null,
+            passwordHash: passwordHash,
+          },
+        });
+
+        await this.redisService.setCachedLink(link.shortCode, {
+          id: link.id,
+          originalUrl: link.originalUrl,
+          isActive: link.isActive,
+          expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+          isProtected: !!link.passwordHash,
+        });
+
+        const { passwordHash: _, ...safeLink } = link;
+        return safeLink;
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          if (dto.customCode) {
+            throw new ConflictException(
+              `Custom alias '${dto.customCode}' is already taken`,
+            );
+          }
+          this.logger.warn(
+            `Database collision on code '${shortCode}', retrying (attempt ${attempt + 1}/${maxRetries})...`,
+          );
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw new InternalServerErrorException(
+      'Failed to generate a unique short code. Please retry.',
+    );
   }
 
   // function i will use for getting the original url from shortcode
@@ -184,12 +207,18 @@ export class LinksService {
     });
 
     if(!link){
-        throw new NotFoundException('Link Not Found');
+        throw new NotFoundException('Link not found');
+    }
+
+    let validatedUrl: string | undefined;
+    if (dto.originalUrl) {
+      validatedUrl = validateTargetUrl(dto.originalUrl);
     }
 
     const updated = await this.prisma.link.update({
         where: {id},
         data: {
+            ...(validatedUrl !== undefined && {originalUrl: validatedUrl}),
             ...(dto.title !== undefined && {title: dto.title}),
             ...(dto.description !== undefined && {description: dto.description}),
             ...(dto.isActive !== undefined && {isActive: dto.isActive}),
@@ -200,7 +229,8 @@ export class LinksService {
     });
 
     await this.redisService.invalidateCachedLink(link.shortCode);
-    return updated;
+    const { passwordHash: _, ...safeLink } = updated;
+    return safeLink;
   }
 
   async findOne(id: string, userId?: string){

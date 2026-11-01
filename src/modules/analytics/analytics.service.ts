@@ -32,7 +32,7 @@ export class AnalyticsService {
     )};
 
     async getLinkAnalytics(linkId: string, userId: string) {
-        const link = await this.prismaService.link.findUnique({
+        const link = await this.prismaService.link.findFirst({
             where: {id: linkId,
                 userId: userId,
             },
