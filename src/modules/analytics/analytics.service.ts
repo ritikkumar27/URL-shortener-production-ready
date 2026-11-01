@@ -31,9 +31,11 @@ export class AnalyticsService {
         },
     )};
 
-    async getLinkAnalytics(linkId: string) {
+    async getLinkAnalytics(linkId: string, userId: string) {
         const link = await this.prismaService.link.findUnique({
-            where: {id: linkId},
+            where: {id: linkId,
+                userId: userId,
+            },
             select: {
                 id: true,
                 shortCode: true,
@@ -113,7 +115,23 @@ export class AnalyticsService {
     // getting hourly/daily clicks counts for graph charting
 
 
-    async getTimeSeriesAnalytics(linkId: string, days = 7){
+    async getTimeSeriesAnalytics(linkId: string, userId: string,  days = 7){
+
+        //verifying ownership
+
+        const link = await this.prismaService.link.findFirst({
+            where: {
+                id: linkId,
+                userId: userId,
+            },
+            select: {id: true},
+        });
+
+        if (!link) {
+            throw new NotFoundException('Link not found');
+        }
+
+        // fetching clicks
 
         const sinceDate = new Date();
         sinceDate.setDate(sinceDate.getDate() - days);
