@@ -248,7 +248,7 @@ export class LinksService {
     const { passwordHash: _, ...safeLink } = link;
     return {
       ...safeLink,
-      shortUrl: `${link.shortCode}`,
+      shortUrl: `${this.baseUrl}/${link.shortCode}`,
     };
   }
 
@@ -262,7 +262,7 @@ export class LinksService {
        const { passwordHash: _, ...safeLink } = link;
        return {
           ...safeLink,
-           shortUrl: `${link.shortCode}`,
+           shortUrl: `${this.baseUrl}/${link.shortCode}`,
         };
     });
 

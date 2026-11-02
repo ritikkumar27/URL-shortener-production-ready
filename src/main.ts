@@ -14,6 +14,7 @@ async function bootstrap() {
   const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1');
 
   // app.setGlobalPrefix(apiPrefix, {exclude: [':code']});
+  // Global prefix is managed explicitly on API controllers to avoid route collisions with root redirects (/:code)
   app.useGlobalPipes(new ZodValidationPipe());
   app.enableCors();
 
@@ -30,8 +31,12 @@ async function bootstrap() {
 
   await app.listen(port);
   // console.log(`🚀 Application running on: http://localhost:${port}/${apiPrefix}`);
-  console.log(`🚀 Application running on: http://localhost:${port}/`);
+  // console.log(`🚀 Application running on: http://localhost:${port}/`);
 
+  // console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
+
+  console.log(`🚀 Application API running on: http://localhost:${port}/${apiPrefix}`);
+  console.log(`🔗 Short link redirects on: http://localhost:${port}/:code`);
   console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
 
 }
