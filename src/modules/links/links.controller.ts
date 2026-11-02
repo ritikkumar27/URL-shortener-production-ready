@@ -18,7 +18,7 @@ import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('Links')
 @ApiBearerAuth()
-@Controller('links')
+@Controller('api/v1/links')
 export class LinksController {
   constructor(private readonly linksService: LinksService) {}
 
