@@ -35,8 +35,12 @@ async function bootstrap() {
 
   await app.listen(port);
   // console.log(`🚀 Application running on: http://localhost:${port}/${apiPrefix}`);
-  console.log(`🚀 Application running on: http://localhost:${port}/`);
+  // console.log(`🚀 Application running on: http://localhost:${port}/`);
 
+  // console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
+
+  console.log(`🚀 Application API running on: http://localhost:${port}/${apiPrefix}`);
+  console.log(`🔗 Short link redirects on: http://localhost:${port}/:code`);
   console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
 
 }
