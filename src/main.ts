@@ -14,6 +14,11 @@ async function bootstrap() {
   const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1');
 
   // app.setGlobalPrefix(apiPrefix, {exclude: [':code']});
+  app.setGlobalPrefix(apiPrefix, {
+    exclude: [
+      {path: ':code', method: RequestMethod.ALL},
+    ],
+  })
   app.useGlobalPipes(new ZodValidationPipe());
   app.enableCors();
 
