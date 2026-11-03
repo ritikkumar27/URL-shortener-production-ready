@@ -252,20 +252,56 @@ export class LinksService {
     };
   }
 
-  async findAll(userId?: string){
-    const links = await this.prisma.link.findMany({
+  // async findAll(userId?: string){
+  //   const links = await this.prisma.link.findMany({
+  //       where: userId ? {userId} : {},
+  //       orderBy: {createdAt: 'desc'},
+  //   });
+
+  //   return links.map((link) => {
+  //      const { passwordHash: _, ...safeLink } = link;
+  //      return {
+  //         ...safeLink,
+  //          shortUrl: `${this.baseUrl}/${link.shortCode}`,
+  //       };
+  //   });
+
+  // }
+
+  async findAll(userId?: string, page = 1, limit = 10){
+    const skip = (page - 1) * limit;
+
+    const [links, total] = await Promise.all([
+      this.prisma.link.findMany({
         where: userId ? {userId} : {},
         orderBy: {createdAt: 'desc'},
-    });
+        skip,
+        take: limit,
+      }),
+      this.prisma.link.count({
+        where: userId ? {userId} : {},
+      }),
+    ]);
 
-    return links.map((link) => {
-       const { passwordHash: _, ...safeLink } = link;
-       return {
+    const totalPages = Math.ceil(total/limit);
+
+    return {
+      data: links.map((link) => {
+        const {passwordHash: _, ...safeLink} = link;
+        return {
           ...safeLink,
-           shortUrl: `${this.baseUrl}/${link.shortCode}`,
+          shortUrl: `${this.baseUrl}/${link.shortCode}`,
         };
-    });
-
+      }),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 
   async remove(id: string, userId?: string) {
