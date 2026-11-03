@@ -38,3 +38,4 @@ export const PaginationQuerySchema = z.object({
 
 export class CreateLinkDto extends createZodDto(CreateLinkSchema) {}
 export class UpdateLinkDto extends createZodDto(UpdateLinkSchema) {}
+export class PaginationQueryDto extends createZodDto(PaginationQuerySchema) {}

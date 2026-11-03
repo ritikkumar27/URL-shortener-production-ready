@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiPropertyOptional, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { LinksService } from './links.service';
-import { CreateLinkDto, UpdateLinkDto } from './dto/links.dto';
+import { CreateLinkDto, UpdateLinkDto, PaginationQueryDto } from './dto/links.dto';
 import { CurrentUser, UserPayLoad } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
@@ -35,15 +35,12 @@ export class LinksController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get current user links (User Dashboard)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Get current user links (User Dashboard with pagination)' })
   findUserLinks(
     @CurrentUser('id') userId: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query() pagination: PaginationQueryDto,
   ) {
-    return this.linksService.findAll(userId);
+    return this.linksService.findAll(userId, pagination.page, pagination.limit);
   }
 
   @Get('/resolve/:code')
