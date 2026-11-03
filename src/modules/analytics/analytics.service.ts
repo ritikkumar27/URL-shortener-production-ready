@@ -84,18 +84,16 @@ export class AnalyticsService {
 
             }),
 
-            this.prismaService.click.findMany({
-                where: {linkId},
-                distinct: ['ipHash'],
-                select: {ipHash: true},
-            }),
+            this.prismaService.$queryRaw<[{ count: number }]>`
+                SELECT COUNT(DISTINCT ip_hash)::int as count FROM clicks WHERE link_id = ${linkId}
+            `,
         ]);
 
         return {
             link,
             summary: {
                 totalClicks: link.clicksCount,
-                uniqueVisitors: uniqueVisitors.length,
+                uniqueVisitors: uniqueVisitors[0]?.count ?? 0,
             },
             topCountries: topCountries.map((c) => ({
                 country: c.country, clicks: c._count.id
@@ -131,10 +129,12 @@ export class AnalyticsService {
             throw new NotFoundException('Link not found');
         }
 
-        // fetching clicks
+        // Bounding days between 1 and 90 to prevent query abuse and infinite loops
+        const boundedDays = Math.min(Math.max(Math.floor(days) || 7, 1), 90);
 
+        // fetching clicks
         const sinceDate = new Date();
-        sinceDate.setDate(sinceDate.getDate() - days);
+        sinceDate.setDate(sinceDate.getDate() - boundedDays);
 
         const clicks = await this.prismaService.click.findMany({
             where: {
@@ -148,7 +148,7 @@ export class AnalyticsService {
 
 
         const dailyMap: Record<string, number> = {};
-        for (let i = 0; i< days; i++){
+        for (let i = 0; i < boundedDays; i++){
             const d = new Date();
             d.setDate(d.getDate() - i);
             const key = d.toISOString().split('T')[0];
