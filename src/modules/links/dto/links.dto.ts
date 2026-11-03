@@ -31,5 +31,10 @@ export const UpdateLinkSchema = z.object({
     expiresAt: z.iso.datetime().nullable().optional(),
 });
 
+export const PaginationQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+});
+
 export class CreateLinkDto extends createZodDto(CreateLinkSchema) {}
 export class UpdateLinkDto extends createZodDto(UpdateLinkSchema) {}
